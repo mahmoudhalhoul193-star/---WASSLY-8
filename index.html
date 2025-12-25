@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>وصلي - Wassaly</title>
+<style>
+:root{--primary:#607d8b;--card:#ffffffee;--text:#333;--background:#e0e0e0;}
+body.dark{--primary:#00bcd4;--card:#1e1e2fdd;--text:#e0e0ff;--background:#121226;}
+*{box-sizing:border-box;}
+body{margin:0;font-family:Segoe UI,Arial;background:var(--background);color:var(--text);transition: background 0.3s,color 0.3s;}
+header,footer{background:var(--card);padding:15px;text-align:center;border-radius:12px;margin:5px 10px;backdrop-filter:blur(8px);box-shadow:0 4px 10px #0002;transition: background 0.3s;}
+nav{display:flex;gap:10px;justify-content:center;margin:15px 0;}
+nav button{background:var(--primary);color:#fff;border:none;padding:10px 20px;border-radius:12px;cursor:pointer;transition: background 0.3s;}
+.page{display:none;padding:20px;}
+.page.active{display:block;}
+.box{max-width:700px;margin:auto;background:var(--card);padding:25px;border-radius:22px;box-shadow:0 8px 25px #0002;transition: background 0.3s;}
+h2{text-align:center;color:var(--primary);}
+input,select,textarea,button{width:100%;padding:12px;margin:6px 0;border-radius:12px;border:1px solid #ccc;transition:border 0.3s, background 0.3s;}
+input:focus,select:focus,textarea:focus{border-color:var(--primary);outline:none;}
+button{background:var(--primary);color:#fff;border:none;}
+button:hover{background:#455a64;}
+.order{border:1px dashed #ccc;padding:12px;border-radius:14px;margin:10px 0;background:#fff8;box-shadow:0 4px 12px #0001;}
+.status-new{color:green;font-weight:bold;}
+.status-run{color:orange;font-weight:bold;}
+.status-done{color:blue;font-weight:bold;}
+.status-pending{color:purple;font-weight:bold;}
+/* Dark/Light Toggle */
+.theme-toggle{position:fixed;top:15px;left:15px;width:60px;height:30px;background:var(--primary);border-radius:30px;cursor:pointer;display:flex;align-items:center;padding:2px;transition: background 0.3s;z-index:50;}
+.toggle-circle{width:26px;height:26px;background:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;transition: all 0.3s ease;font-size:16px;margin-left:2px;}
+body.dark .toggle-circle{margin-left:calc(100% - 28px);}
+/* Language Toggle */
+.lang-toggle{position:fixed;top:15px;left:85px;width:60px;height:30px;background:var(--primary);border-radius:30px;cursor:pointer;display:flex;align-items:center;padding:2px;transition: background 0.3s;z-index:50;}
+.toggle-circle-lang{width:26px;height:26px;background:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;transition: all 0.3s ease;font-size:14px;margin-left:2px;}
+/* Help Button */
+#help{position:fixed;right:18px;bottom:20px;z-index:60;}
+#help button{background:#25D366;border-radius:12px;padding:10px 14px;cursor:pointer;}
+#helpOptions{display:none;background:var(--card);border-radius:14px;overflow:hidden;margin-bottom:8px;box-shadow:0 6px 20px #0002;}
+#helpOptions a{display:block;padding:10px 14px;text-decoration:none;color:var(--text);transition:background 0.2s;}
+#helpOptions a:hover{background:#ccc3;}
+</style>
+</head>
+<body>
+<div class="theme-toggle" onclick="toggleTheme()"><div class="toggle-circle">🌞</div></div>
+<div class="lang-toggle" onclick="toggleLang()"><div class="toggle-circle-lang">AR</div></div>
+
+<header><h1>وصلي - Wassaly</h1><p>خدمة توصيل سريعة وآمنة</p></header>
+<nav>
+<button onclick="showPage('orderPage')">طلب توصيل</button>
+<button onclick="showPage('driverPage')">السواق</button>
+<button onclick="showPage('adminPage')">Admin</button>
+</nav>
+
+<section id="orderPage" class="page active">
+<div class="box">
+<h2 id="orderTitle">طلب توصيل</h2>
+<input id="cname" placeholder="الاسم الثلاثي">
+<input id="cphone" placeholder="رقم الهاتف (11 رقم)">
+<input id="clocation" placeholder="الموقع">
+<textarea id="details" placeholder="تفاصيل الطلب"></textarea>
+<input id="price" type="number" min="10" placeholder="السعر (10 جنيه على الأقل)">
+<select id="typeClient">
+<option value="موتوسيكل">موتوسيكل</option>
+<option value="عربية">عربية</option>
+<option value="توك توك">توك توك</option>
+</select>
+<select id="selectDriver"><option value="">اختر السواق</option></select>
+<button id="sendBtn" onclick="sendOrder()">إرسال الطلب</button>
+<div id="clientAction"></div>
+</div>
+</section>
+
+<section id="driverPage" class="page">
+<div class="box">
+<h2 id="driverTitle">دخول السواق</h2>
+<input id="driverName" placeholder="اسم السواق الثلاثي">
+<input id="driverPhone" placeholder="رقم واتساب السواق (11 رقم)">
+<button id="driverEnter" onclick="enterDriver()">دخول</button>
+<h2>طلباتك</h2>
+<div id="driverOrders"></div>
+</div>
+</section>
+
+<section id="adminPage" class="page">
+<div class="box">
+<h2 id="adminTitle">لوحة التحكم</h2>
+<h2>كل الطلبات</h2>
+<div id="allOrders"></div>
+<h2>قائمة السواقين</h2>
+<div id="allDrivers"></div>
+</div>
+</section>
+
+<div id="help">
+<button onclick="toggleHelp()" id="helpBtn">💬 مساعدة</button>
+<div id="helpOptions">
+<a href="https://wa.me/201208624618?text=شكوى تأخير الطلب" target="_blank">⏰ تأخير الطلب</a>
+<a href="https://wa.me/201208624618?text=شكوى السواق لم يتواصل" target="_blank">📞 السواق لم يتواصل</a>
+<a href="https://wa.me/201208624618?text=مشكلة في السعر" target="_blank">💰 مشكلة في السعر</a>
+<a href="https://wa.me/201208624618?text=طلب لم يتم" target="_blank">❌ طلب لم يتم</a>
+</div>
+</div>
+
+<footer>حقوق النشر محفوظة ©<br>تطوير: mahmoud halhoul<br>تصميم: mohamed elskhely</footer>
+
+<script>
+let currentDriver = null;
+let drivers = [];
+let orders = [];
+let lang='AR';
+
+window.onload = function(){
+  const savedDrivers = localStorage.getItem('drivers');
+  const savedOrders = localStorage.getItem('orders');
+  if(savedDrivers) drivers = JSON.parse(savedDrivers);
+  if(savedOrders) orders = JSON.parse(savedOrders);
+  renderDriversSelect();
+  renderAll();
+};
+
+function showPage(id){
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  updateText();
+  if(id === 'orderPage') renderDriversSelect();
+  if(id === 'driverPage' && currentDriver) renderDriver();
+  if(id === 'adminPage') { renderAll(); renderDriversSelect(); }
+}
+
+function toggleTheme(){
+  document.body.classList.toggle('dark');
+  document.querySelector('.toggle-circle').textContent=document.body.classList.contains('dark')?'🌙':'🌞';
+}
+
+function toggleLang(){ 
+  lang=(lang==='AR')?'ENG':'AR'; 
+  document.querySelector('.toggle-circle-lang').textContent=lang; 
+  updateText();
+}
+
+function updateText(){
+  if(lang==='AR'){
+    document.querySelector('header h1').textContent='وصلي - Wassaly';
+    document.querySelector('header p').textContent='خدمة توصيل سريعة وآمنة';
+    document.querySelector('nav button:nth-child(1)').textContent='طلب توصيل';
+    document.querySelector('nav button:nth-child(2)').textContent='السواق';
+    document.querySelector('nav button:nth-child(3)').textContent='Admin';
+  } else {
+    document.querySelector('header h1').textContent='Wassaly - Delivery';
+    document.querySelector('header p').textContent='Fast & Safe Delivery Service';
+    document.querySelector('nav button:nth-child(1)').textContent='Place Order';
+    document.querySelector('nav button:nth-child(2)').textContent='Driver';
+    document.querySelector('nav button:nth-child(3)').textContent='Admin';
+  }
+}
+
+function toggleHelp(){
+  const helpOptions=document.getElementById('helpOptions');
+  helpOptions.style.display = helpOptions.style.display==='block'?'none':'block';
+}
+
+function enterDriver(){
+  const name = document.getElementById('driverName').value.trim();
+  const phone = document.getElementById('driverPhone').value.trim();
+  if(name.length < 3 || phone.length !== 11){
+    alert(lang==='AR'?'يرجى إدخال بيانات صحيحة':'Please enter valid data');
+    return;
+  }
+  let driver = drivers.find(d => d.phone === phone);
+  if(!driver){
+    driver = { name, phone, orders: [] };
+    drivers.push(driver);
+    localStorage.setItem('drivers', JSON.stringify(drivers));
+  }
+  currentDriver = driver;
+  alert(lang==='AR'?'تم تسجيل الدخول بنجاح':'Logged in successfully');
+  renderDriver();
+}
+
+function renderDriver(){
+  const container = document.getElementById('driverOrders');
+  container.innerHTML='';
+  if(!currentDriver) return;
+  const driverOrders = orders.filter(o => o.driver===currentDriver.phone);
+  driverOrders.forEach((o,i)=>{
+    const div=document.createElement('div');
+    div.className='order';
+    let ratingHTML='';
+    if(o.status==='done'){
+      const ratingVal = o.rating || '';
+      ratingHTML=`<br><label>${lang==='AR'?'تقييم الخدمة':'Service Rating'}:</label>
+      <input type="number" min="1" max="5" value="${ratingVal}" onchange="rateOrder(${i},this.value)">`;
+    }
+    div.innerHTML=`<b>${lang==='AR'?'طلب':'Order'}:</b> ${o.details}<br>
+    <b>${lang==='AR'?'السعر':'Price'}:</b> ${o.price} ج<br>
+    <b>${lang==='AR'?'نوع المركبة':'Vehicle Type'}:</b> ${o.type}<br>
+    <b>${lang==='AR'?'الحالة':'Status'}:</b> <span class="status-${o.status}">${o.status}</span><br>
+    <button onclick="updateStatus(${i})">${lang==='AR'?'تغيير الحالة':'Change Status'}</button>
+    <button onclick="sendWhatsApp(${i})">${lang==='AR'?'إرسال واتساب للسواق':'Send WhatsApp to Driver'}</button>
+    ${ratingHTML}`;
+    container.appendChild(div);
+  });
+}
+
+function updateStatus(index){
+  const statuses = ['new','run','done'];
+  let current = orders[index].status;
+  let nextIndex = (statuses.indexOf(current)+1)%statuses.length;
+  orders[index].status = statuses[nextIndex];
+  localStorage.setItem('orders', JSON.stringify(orders));
+  renderDriver();
+  renderAll();
+}
+
+function rateOrder(index,value){
+  orders[index].rating = value;
+  localStorage.setItem('orders', JSON.stringify(orders));
+}
+
+function renderDriversSelect(){
+  const select = document.getElementById('selectDriver');
+  select.innerHTML='<option value="">اختر السواق</option>';
+  drivers.forEach(d=>{
+    const opt = document.createElement('option');
+    opt.value=d.phone;
+    opt.textContent=d.name;
+    select.appendChild(opt);
+  });
+
+  const allDriversDiv = document.getElementById('allDrivers');
+  if(allDriversDiv){
+    allDriversDiv.innerHTML='';
+    drivers.forEach(d=>{
+      const div = document.createElement('div');
+      div.className='order';
+      div.textContent=d.name + ' - ' + d.phone;
+      allDriversDiv.appendChild(div);
+    });
+  }
+}
+
+function sendOrder(){
+  const cname=document.getElementById('cname').value.trim();
+  const cphone=document.getElementById('cphone').value.trim();
+  const clocation=document.getElementById('clocation').value.trim();
+  const details=document.getElementById('details').value.trim();
+  const price=document.getElementById('price').value;
+  const type=document.getElementById('typeClient').value;
+  const driver=document.getElementById('selectDriver').value;
+
+  if(!cname||!cphone||!clocation||!details||price<10||!driver){
+    alert(lang==='AR'?'يرجى ملء جميع البيانات بشكل صحيح واختيار سواق':'Please fill all fields correctly and select a driver');
+    return;
+  }
+
+  const order = { cname,cphone,clocation,details,price,driver,type,status:'new',rating:null };
+  orders.push(order);
+  localStorage.setItem('orders', JSON.stringify(orders));
+
+  sendWhatsApp(orders.length-1);
+
+  document.getElementById('cname').value='';
+  document.getElementById('cphone').value='';
+  document.getElementById('clocation').value='';
+  document.getElementById('details').value='';
+  document.getElementById('price').value='';
+  document.getElementById('selectDriver').value='';
+  renderDriver();
+  renderAll();
+  renderDriversSelect();
+}
+
+function sendWhatsApp(index){
+  const o = orders[index];
+  const selectedDriver = drivers.find(d => d.phone===o.driver);
+  if(selectedDriver){
+    const msg = `مرحبا ${selectedDriver.name}!\nلديك طلب جديد على وصلني 🚀\n\n👤 اسم العميل: ${o.cname}\n📞 رقم العميل: ${o.cphone}\n📝 تفاصيل الطلب: ${o.details}\n🚗 نوع المركبة: ${o.type}\n💰 السعر: ${o.price} جنيه`;
+    const url = `https://wa.me/${selectedDriver.phone}?text=${encodeURIComponent(msg)}`;
+    window.open(url,'_blank');
+  }
+}
+
+function renderAll(){
+  const container = document.getElementById('allOrders');
+  container.innerHTML='';
+  orders.forEach((o,i)=>{
+    const div=document.createElement('div');
+    div.className='order';
+    let ratingHTML='';
+    if(o.rating) ratingHTML=`<br><b>${lang==='AR'?'التقييم':'Rating'}:</b> ${o.rating}/5`;
+    div.innerHTML=`<b>${lang==='AR'?'العميل':'Client'}:</b> ${o.cname} - <b>${lang==='AR'?'السواق':'Driver'}:</b> ${o.driver}<br>
+    <b>${lang==='AR'?'التفاصيل':'Details'}:</b> ${o.details} <br> 
+    <b>${lang==='AR'?'السعر':'Price'}:</b> ${o.price} ج <br>
+    <b>${lang==='AR'?'نوع المركبة':'Vehicle Type'}:</b> ${o.type} <br>
+    <b>${lang==='AR'?'الحالة':'Status'}:</b> <span class="status-${o.status}">${o.status}</span>
+    ${ratingHTML}`;
+    container.appendChild(div);
+  });
+}
+</script>
+</body>
+</html>
